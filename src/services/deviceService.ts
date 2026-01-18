@@ -1,5 +1,6 @@
-import { Device, IDevice } from '../models';
-import { JwtUtils } from '../utils/jwt';
+import { Device } from "../models";
+import { IDevice } from "../models/Device";
+import { JwtUtils } from "../utils/jwt";
 
 export class DeviceService {
   /**
@@ -8,13 +9,13 @@ export class DeviceService {
    */
   static async createDeviceSession(
     userId: string,
-    userType: 'user' | 'merchant' | 'admin',
-    email: string
+    userType: "user" | "merchant" | "admin",
+    email: string,
   ): Promise<{ accessToken: string; refreshToken: string; device: IDevice }> {
     const { accessToken, refreshToken } = JwtUtils.generateTokenPair(
       userId,
       email,
-      userType
+      userType,
     );
 
     // Always create a new device record instead of updating existing one
@@ -43,7 +44,7 @@ export class DeviceService {
    * Find device by refresh token
    */
   static async findDeviceByRefreshToken(
-    token: string
+    token: string,
   ): Promise<IDevice | null> {
     return await Device.findByRefreshToken(token);
   }
@@ -61,7 +62,7 @@ export class DeviceService {
    */
   static async deleteUserDevices(
     userId: string,
-    userType: string
+    userType: string,
   ): Promise<number> {
     const result = await Device.deleteUserDevices(userId, userType);
     return result.deletedCount;
@@ -72,7 +73,7 @@ export class DeviceService {
    */
   static async getUserDevices(
     userId: string,
-    userType: string
+    userType: string,
   ): Promise<IDevice[]> {
     return await Device.find({ userId, userType }).sort({ createdAt: -1 });
   }
@@ -83,8 +84,8 @@ export class DeviceService {
   static async refreshDeviceTokens(
     refreshToken: string,
     userId: string,
-    userType: 'user' | 'merchant' | 'admin',
-    email: string
+    userType: "user" | "merchant" | "admin",
+    email: string,
   ): Promise<{ accessToken: string; refreshToken: string } | null> {
     // Find device by refresh token
     const device = await Device.findByRefreshToken(refreshToken);
@@ -104,4 +105,3 @@ export class DeviceService {
     return { accessToken: newAccessToken, refreshToken: newRefreshToken };
   }
 }
-
