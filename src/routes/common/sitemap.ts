@@ -17,7 +17,6 @@ const allowCors = (req: Request, res: Response, next: NextFunction) => {
 
 router.use(allowCors);
 
-router.get('/sitemap.xml', sitemapController.getSitemapIndex);
 router.get('/sitemap-p9r1y6g0p3.xml', sitemapController.getSitemapIndex);
 router.get(
   '/sitemap-blogs-p9r1y6g0p3.xml.gz',
