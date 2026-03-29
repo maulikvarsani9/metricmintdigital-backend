@@ -1,19 +1,10 @@
 import { Request, Response } from 'express';
 import { ContactInquiry } from '../../models';
 import { asyncHandler } from '../../utils/asyncHandler';
-import { sendSuccess } from '../../utils/response';
 import { sendContactInquiryAlert, isMailConfigured } from '../../services/mailService';
-import { CustomError } from '../../middleware/errorHandler';
 
 export const submitContactInquiry = asyncHandler(
   async (req: Request, res: Response) => {
-    if (!isMailConfigured()) {
-      throw new CustomError(
-        'Contact form is temporarily unavailable. Please try again later.',
-        503
-      );
-    }
-
     const {
       fullName,
       email,
@@ -43,17 +34,20 @@ export const submitContactInquiry = asyncHandler(
       source,
     });
 
-    try {
-      await sendContactInquiryAlert(inquiry);
-    } catch (err) {
-      console.error('Contact inquiry email failed:', err);
+    if (isMailConfigured()) {
+      void sendContactInquiryAlert(inquiry).catch(err => {
+        console.error('Contact inquiry email failed (non-blocking):', err);
+      });
+    } else {
+      console.warn(
+        'Contact inquiry saved but SMTP not configured — alert email skipped.'
+      );
     }
 
-    return sendSuccess(
-      res,
-      { id: inquiry._id },
-      'Thank you — your inquiry was received.',
-      201
-    );
+    return res.status(201).json({
+      success: true,
+      message: 'Thank you — your inquiry was received.',
+      id: inquiry._id,
+    });
   }
 );
